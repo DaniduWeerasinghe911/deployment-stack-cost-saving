@@ -31,5 +31,4 @@ stages:
               --name 'stack' `
               --template-file './bastion.bicep' `
               --parameters 'deployResources=$(deployResources)' `
-              --deny-settings-mode 'none' `
               --action-on-unmanage deleteAll
