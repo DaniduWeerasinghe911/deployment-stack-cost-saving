@@ -1,0 +1,28 @@
+parameters:
+- name: deployResources
+  type: bool
+  default: true
+  values:
+  - true
+  - false
+
+stages:
+  - stage: Deploy_Azure_Policy
+    jobs:
+    - job: Deploy_Azure_Policy
+      steps:
+      - checkout: self
+      - task: AzureCLI@2
+        displayName: Deploy to Management Group Policy
+        inputs:
+          azureSubscription: 'azure-mvp-subscription'
+          scriptLocation: 'inlineScript'
+          scriptType: 'ps'
+          inlineScript: |
+            az stack group create `
+              --resource-group 'dckloud-network-rg' `
+              --name 'stack' `
+              --template-file './bastion.bicep' `
+              --parameters 'deployResources=$(deployResources)' `
+              --deny-settings-mode 'none' `
+              --action-on-unmanage deleteAll
