@@ -7,7 +7,7 @@ schedules:
 
 parameters:
 - name: deployResources
-  type: bool
+  type: boolean
   default: true
   values:
   - true
