@@ -20,7 +20,7 @@ stages:
       steps:
       - checkout: self
       - task: AzureCLI@2
-        displayName: Deploy to Management Group Policy
+        displayName: Deploy to Reources
         inputs:
           azureSubscription: 'azure-mvp-subscription'
           scriptLocation: 'inlineScript'
