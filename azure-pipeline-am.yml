@@ -1,6 +1,10 @@
 schedules:
 - cron: '0 6 * * *'
   displayName: Daily 6am build
+  branches:
+    include:
+    - main
+  
 
 parameters:
 - name: deployResources

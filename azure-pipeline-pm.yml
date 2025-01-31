@@ -1,6 +1,9 @@
 schedules:
 - cron: '0 18 * * *'
   displayName: Daily 6pm build
+  branches:
+    include:
+    - main
 
 parameters:
 - name: deployResources
@@ -20,7 +23,7 @@ stages:
       steps:
       - checkout: self
       - task: AzureCLI@2
-        displayName: Deploy to Reources
+        displayName: Deploy to Resources
         inputs:
           azureSubscription: 'azure-mvp-subscription'
           scriptLocation: 'inlineScript'
