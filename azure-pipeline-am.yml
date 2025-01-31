@@ -13,11 +13,12 @@ parameters:
   - true
   - false
 
+pool:
+  vmImage: windows-latest
+
 stages:
   - stage: Deploy_Azure_Policy
     jobs:
-      pool:
-      vmImage: 'windows-latest'
     - job: Deploy_Azure_Policy
       steps:
       - checkout: self
