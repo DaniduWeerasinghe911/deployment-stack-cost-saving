@@ -1,9 +1,6 @@
 schedules:
 - cron: '0 18 * * *'
   displayName: Daily 6pm build
-  branches:
-    include:
-    - main
 
 parameters:
 - name: deployResources
