@@ -29,6 +29,7 @@ stages:
           scriptLocation: 'inlineScript'
           scriptType: 'ps'
           inlineScript: |
+            az account set --subscription 'Microsoft Azure Sponsorship'        
             az stack group create `
               --resource-group 'dckloud-network-rg' `
               --name 'stack' `
