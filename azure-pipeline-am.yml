@@ -34,5 +34,5 @@ stages:
               --resource-group 'dckloud-network-rg' `
               --name 'stack' `
               --template-file './bastion.bicep' `
-              --parameters 'deployResources=$(deployResources)' `
+              --parameters deployResources=$(deployResources) `
               --action-on-unmanage deleteAll
