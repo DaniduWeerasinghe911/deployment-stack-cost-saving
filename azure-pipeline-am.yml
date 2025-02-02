@@ -36,3 +36,4 @@ stages:
               --template-file './bastion.bicep' `
               --parameters deployResources=${{ parameters.deployResources }} `
               --action-on-unmanage deleteAll
+              --deny-settings-mode 'none' `
