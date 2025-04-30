@@ -18,9 +18,9 @@ pool:
   vmImage: windows-latest
 
 stages:
-  - stage: Deploy_Azure_Policy
+  - stage: Deploy_Azure_Stack
     jobs:
-    - job: Deploy_Azure_Policy
+    - job: Deploy_Azure_Stack
       steps:
       - checkout: self
       - task: AzureCLI@2

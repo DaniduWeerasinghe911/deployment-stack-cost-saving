@@ -1,0 +1,79 @@
+# Create a new Azure Stack at subscription scope
+az stack sub create `
+  --name 'sampledeployment' `
+  --location 'australiaeast' `
+  --template-file './main.bicep' `
+  --parameters './main.bicepparam' `
+  --parameters deployResources=false `
+  --deny-settings-mode 'none' `
+  --yes `
+  --action-on-unmanage deleteAll
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# List all Azure Stacks in the subscription
+az stack sub list `
+  --resource-group 'deployment-stack-rg'
+
+# Show details of a specific Azure Stack
+az stack sub show `
+  --name 'dckloudstorage'
+
+# Update an existing Azure Stack
+az stack sub update `
+  --name 'dckloudstorage' `
+  --template-file './main.bicep' `
+  --deny-settings-mode 'none'
+
+# Delete an Azure Stack
+az stack sub delete `
+  --name 'dckloudstorage' `
+  --yes
+
+# List all deployments for a specific Azure Stack
+az stack sub deployment list `
+  --stack-name 'dckloudstorage'
+
+# Create Azure Stack with parameters file
+az stack sub create `
+  --name 'dckloudstorage' `
+  --location 'australiaeast' `
+  --template-file './main.bicep' `
+  --parameters '@parameters.json' `
+  --deny-settings-mode 'none' `
+  --action-on-unmanage deleteAll
+
+# Create Azure Stack with tags
+az stack sub create `
+  --name 'dckloudstorage' `
+  --location 'australiaeast' `
+  --template-file './main.bicep' `
+  --tags environment=dev project=cloud `
+  --deny-settings-mode 'none' `
+  --action-on-unmanage deleteAll
+
+# Create Azure Stack with what-if operation (preview changes)
+az stack sub what-if `
+  --name 'dckloudstorage' `
+  --location 'australiaeast' `
+  --template-file './main.bicep'
