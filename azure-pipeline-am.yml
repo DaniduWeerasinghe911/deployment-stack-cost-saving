@@ -34,8 +34,9 @@ stages:
             az stack sub create `
               --name 'stack' `
               --template-file './main.bicep' `
-              --parameters './main.bicepparam' `
               --location 'australiaeast' `
+              --parameters './main.bicepparam' `
               --parameters deployResources=${{ parameters.deployResources }} `
               --action-on-unmanage deleteAll `
+              --yes `
               --deny-settings-mode 'none'
