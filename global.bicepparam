@@ -1,0 +1,2 @@
+using './global.bicep'
+
