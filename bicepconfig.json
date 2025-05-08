@@ -6,6 +6,9 @@
       "rules": {
         "no-unused-params": {
           "level": "warning"
+        },
+        "no-hardcoded-location": {
+          "level": "warning"
         }
       }
     }

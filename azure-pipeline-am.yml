@@ -31,10 +31,11 @@ stages:
           scriptType: 'ps'
           inlineScript: |
             az account set --subscription 'Microsoft Azure Sponsorship'        
-            az stack group create `
-              --resource-group 'dckloud-network-rg' `
+            az stack sub create `
               --name 'stack' `
-              --template-file './bastion.bicep' `
+              --template-file './main.bicep' `
+              --parameters './main.bicepparam' `
+              --location 'australiaeast' `
               --parameters deployResources=${{ parameters.deployResources }} `
               --action-on-unmanage deleteAll `
               --deny-settings-mode 'none'
