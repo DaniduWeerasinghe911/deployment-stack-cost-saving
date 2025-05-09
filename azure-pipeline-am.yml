@@ -34,9 +34,8 @@ stages:
             az account set --subscription 'Microsoft Azure Sponsorship'        
             az stack sub create `
               --name 'stack' `
-              --template-file '.\main.bicep' `
+              --template-file './main.bicep' `
               --location 'australiaeast' `
-              --parameters '.\main.bicepparam' `
               --parameters deployResources=${{ parameters.deployResources }} `
               --action-on-unmanage deleteAll `
               --yes `
