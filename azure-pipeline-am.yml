@@ -16,7 +16,7 @@ parameters:
   - false
 
 pool:
-  vmImage: windows-latest
+  vmImage: windows-2022
 
 stages:
   - stage: Deploy_Azure_Stack
