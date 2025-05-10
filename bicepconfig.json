@@ -8,7 +8,7 @@
           "level": "warning"
         },
         "no-hardcoded-location": {
-          "level": "warning"
+          "level": "error"
         }
       }
     }
