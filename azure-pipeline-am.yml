@@ -16,7 +16,7 @@ parameters:
   - false
 
 pool:
-  vmImage: windows-2022
+  vmImage: windows-latest
 
 stages:
   - stage: Deploy_Azure_Stack
@@ -34,9 +34,9 @@ stages:
             az account set --subscription 'Microsoft Azure Sponsorship'        
             az stack sub create `
               --name 'stack' `
-              --template-file './main.bicep' `
+              --template-file main.bicep `
               --location 'australiaeast' `
-              --parameters ./main.bicepparam deployResources=${{ parameters.deployResources }} `
+              --parameters main.bicepparam deployResources=${{ parameters.deployResources }} `
               --action-on-unmanage deleteAll `
               --yes `
               --deny-settings-mode 'none'
