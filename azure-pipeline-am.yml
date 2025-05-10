@@ -36,7 +36,7 @@ stages:
               --name 'stack' `
               --template-file './main.bicep' `
               --location 'australiaeast' `
-              --parameters main.bicepparam deployResources=${{ parameters.deployResources }} `
+              --parameters ./main.bicepparam deployResources=${{ parameters.deployResources }} `
               --action-on-unmanage deleteAll `
               --yes `
               --deny-settings-mode 'none'
