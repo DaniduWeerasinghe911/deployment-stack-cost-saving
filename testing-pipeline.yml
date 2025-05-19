@@ -26,7 +26,7 @@ stages:
         targetType: 'inline'
         script: |
             # Set TLS 1.2
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityPointManager]::Tls12
             
             # Create modules directory if it doesn't exist
             $modulesPath = "$(Pipeline.Workspace)/modules"
@@ -40,8 +40,14 @@ stages:
             # Extract to modules path
             Expand-Archive -Path $armTTKZip -DestinationPath "$modulesPath/arm-ttk" -Force
             
-            # Import module
-            Import-Module "$modulesPath/arm-ttk/arm-ttk/arm-ttk.psd1" -Force
+            # Check if module file exists before importing
+            if (Test-Path "$modulesPath/arm-ttk/arm-ttk/arm-ttk.psd1") {
+                Import-Module "$modulesPath/arm-ttk/arm-ttk/arm-ttk.psd1" -Force
+                Write-Host "ARM-TTK module imported successfully."
+            } else {
+                Write-Error "ARM-TTK module file not found."
+                throw "ARM-TTK installation failed"
+            }
             
             # Verify installation
             if (Get-Command Test-AzTemplate -ErrorAction SilentlyContinue) {
