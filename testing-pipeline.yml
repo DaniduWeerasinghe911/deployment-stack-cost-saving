@@ -18,13 +18,44 @@ stages:
 - stage: SecurityAndQualityChecks
   jobs:
   - job: AISecurityScanning
-    steps:
+      steps:
+      # Install and configure ARM-TTK
+    - task: PowerShell@2
+        displayName: 'Install ARM-TTK'
+        inputs:
+          targetType: 'inline'
+          script: |
+            Install-Module -Name ARM-TTK -Force -Scope CurrentUser
+            Import-Module ARM-TTK
+
     - task: MicrosoftSecurityDevOps@1
-      displayName: 'Microsoft Security DevOps'
-      inputs:
-        categories: 'IaC'
-        outputFormat: 'sarif'
-        tools: 'arm-ttk,binskim,templateanalyzer'
+        displayName: 'Microsoft Security DevOps'
+        inputs:
+          categories: 'IaC'
+          outputFormat: 'sarif'
+          tools: 'binskim,templateanalyzer'  # Removed arm-ttk as we'll handle it separately
+
+      # Add dedicated ARM-TTK testing step
+    - task: PowerShell@2
+        displayName: 'Run ARM-TTK Tests'
+        inputs:
+          targetType: 'inline'
+          script: |
+            $resultsDir = "$(Build.ArtifactStagingDirectory)/security-results"
+            New-Item -ItemType Directory -Force -Path $resultsDir
+            
+            # Convert Bicep to ARM templates for testing
+            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)" -Filter "*.bicep" -Recurse | ForEach-Object {
+                Write-Host "Converting $($_.Name) to ARM template"
+                $armTemplatePath = $_.FullName -replace '\.bicep$', '.json'
+                az bicep build --file $_.FullName --outfile $armTemplatePath
+                
+                # Run ARM-TTK tests
+                $testResults = Test-AzTemplate -TemplatePath $armTemplatePath
+                
+                # Export results
+                $testResults | ConvertTo-Json -Depth 10 | Out-File "$resultsDir/arm-ttk-$($_.BaseName).json"
+            }
 
     - task: PowerShell@2
       displayName: 'Custom Security Analysis'
