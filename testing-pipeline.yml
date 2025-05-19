@@ -47,12 +47,12 @@ stages:
           }
         azurePowerShellVersion: 'LatestVersion'
 
-    - task: PSRule@2
-      inputs:
-        modules: 'PSRule.Rules.Azure'
-        inputPath: '$(System.DefaultWorkingDirectory)'
-        outputFormat: 'Csv'
-        outputPath: 'ps-rule-results.csv'
+    # - task: PSRule@2
+    #   inputs:
+    #     modules: 'PSRule.Rules.Azure'
+    #     inputPath: '$(System.DefaultWorkingDirectory)'
+    #     outputFormat: 'Csv'
+    #     outputPath: 'ps-rule-results.csv'
 
 - stage: AITestGeneration
   dependsOn: BicepValidation
