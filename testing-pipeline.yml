@@ -18,7 +18,7 @@ stages:
 - stage: SecurityAndQualityChecks
   jobs:
   - job: AISecurityScanning
-      steps:
+    steps:
       # Install and configure ARM-TTK
     - task: PowerShell@2
         displayName: 'Install ARM-TTK'
