@@ -26,7 +26,7 @@ stages:
         targetType: 'inline'
         script: |
             # Set TLS 1.2
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityPointManager]::Tls12
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
             
             # Create modules directory if it doesn't exist
             $modulesPath = "$(Pipeline.Workspace)/modules"
@@ -35,10 +35,20 @@ stages:
             # Download and extract ARM-TTK
             $armTTKUrl = "https://github.com/Azure/arm-ttk/releases/latest/download/arm-ttk.zip"
             $armTTKZip = "$modulesPath/arm-ttk.zip"
-            Invoke-WebRequest -Uri $armTTKUrl -OutFile $armTTKZip
+            try {
+              Invoke-WebRequest -Uri $armTTKUrl -OutFile $armTTKZip -ErrorAction Stop
+            } catch {
+              Write-Error "Failed to download ARM-TTK: $($_.Exception.Message)"
+              throw "Failed to download ARM-TTK"
+            }
             
             # Extract to modules path
-            Expand-Archive -Path $armTTKZip -DestinationPath "$modulesPath/arm-ttk" -Force
+            try {
+              Expand-Archive -Path $armTTKZip -DestinationPath "$modulesPath/arm-ttk" -Force -ErrorAction Stop
+            } catch {
+              Write-Error "Failed to extract ARM-TTK: $($_.Exception.Message)"
+              throw "Failed to extract ARM-TTK"
+            }
             
             # Check if module file exists before importing
             if (Test-Path "$modulesPath/arm-ttk/arm-ttk/arm-ttk.psd1") {
