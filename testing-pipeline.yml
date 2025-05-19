@@ -1,0 +1,107 @@
+trigger:
+  branches:
+    include:
+      - main
+      - feature/*
+      - release/*
+
+variables:
+  - name: location
+    value: 'australiaeast'
+  - name: environmentType
+    value: 'nonprod'
+
+pool:
+  vmImage: 'windows-latest'
+
+stages:
+- stage: SecurityAndQualityChecks
+  jobs:
+  - job: AISecurityScanning
+    steps:
+    - task: MicrosoftSecurityDevOps@1
+      displayName: 'Microsoft Security DevOps'
+      inputs:
+        categories: 'IaC'
+
+    - task: ms-securitydevops.azsk-dev.arm-template-checker.ARMTemplateChecker@2
+      displayName: 'ARM Template Checker'
+      inputs:
+        ARMTemplateFilePath: '**/*.bicep'
+        ARMTemplateParameterFilePath: '**/*.parameters.json'
+
+- stage: BicepValidation
+  dependsOn: SecurityAndQualityChecks
+  jobs:
+  - job: ValidateBicep
+    steps:
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'Azure subscription'
+        ScriptType: 'InlineScript'
+        Inline: |
+          # Validate Bicep files
+          Get-ChildItem -Path "$(System.DefaultWorkingDirectory)" -Filter "*.bicep" -Recurse | ForEach-Object {
+            Write-Host "Validating $($_.FullName)"
+            az bicep build --file $_.FullName
+          }
+        azurePowerShellVersion: 'LatestVersion'
+
+    - task: PSRule@2
+      inputs:
+        modules: 'PSRule.Rules.Azure'
+        inputPath: '$(System.DefaultWorkingDirectory)'
+        outputFormat: 'Csv'
+        outputPath: 'ps-rule-results.csv'
+
+- stage: AITestGeneration
+  dependsOn: BicepValidation
+  jobs:
+  - job: GenerateAndRunTests
+    steps:
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'Azure subscription'
+        ScriptType: 'InlineScript'
+        Inline: |
+          # Generate test cases using Azure's What-If analysis
+          az deployment sub what-if `
+            --location $(location) `
+            --template-file main.bicep `
+            --parameters main.bicepparam
+        azurePowerShellVersion: 'LatestVersion'
+
+# - stage: Deploy
+#   dependsOn: AITestGeneration
+#   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+#   jobs:
+#   - deployment: DeployInfrastructure
+#     environment: 'nonprod'
+#     strategy:
+#       runOnce:
+#         deploy:
+#           steps:
+#           - task: AzurePowerShell@5
+#             inputs:
+#               azureSubscription: 'Azure subscription'
+#               ScriptType: 'InlineScript'
+#               Inline: |
+#                 # Deploy Bicep template
+#                 az deployment sub create `
+#                   --location $(location) `
+#                   --template-file main.bicep `
+#                   --parameters environmentType=$(environmentType)
+#               azurePowerShellVersion: 'LatestVersion'
+
+#           - task: AzureMonitor@1
+#             inputs:
+#               connectedServiceNameARM: 'Azure subscription'
+#               ResourceGroupName: '$(resourceGroupName)'
+#               filterType: 'custom'
+#               customFilter: |
+#                 {
+#                   "timeRange": {
+#                     "value": "last24hours",
+#                     "type": "relative"
+#                   }
+#                 }
