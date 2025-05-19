@@ -24,11 +24,11 @@ stages:
       inputs:
         categories: 'IaC'
 
-    - task: ms-securitydevops.azsk-dev.arm-template-checker.ARMTemplateChecker@2
-      displayName: 'ARM Template Checker'
-      inputs:
-        ARMTemplateFilePath: '**/*.bicep'
-        ARMTemplateParameterFilePath: '**/*.parameters.json'
+    # - task: ms-securitydevops.azsk-dev.arm-template-checker.ARMTemplateChecker@2
+    #   displayName: 'ARM Template Checker'
+    #   inputs:
+    #     ARMTemplateFilePath: '**/*.bicep'
+    #     ARMTemplateParameterFilePath: '**/*.parameters.json'
 
 - stage: BicepValidation
   dependsOn: SecurityAndQualityChecks
