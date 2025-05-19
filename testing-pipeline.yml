@@ -25,8 +25,30 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-            Install-Module -Name ARM-TTK -Force -Scope CurrentUser
-            Import-Module ARM-TTK
+            # Set TLS 1.2
+            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+            
+            # Create modules directory if it doesn't exist
+            $modulesPath = "$(Pipeline.Workspace)/modules"
+            New-Item -ItemType Directory -Force -Path $modulesPath
+            
+            # Download and extract ARM-TTK
+            $armTTKUrl = "https://github.com/Azure/arm-ttk/releases/latest/download/arm-ttk.zip"
+            $armTTKZip = "$modulesPath/arm-ttk.zip"
+            Invoke-WebRequest -Uri $armTTKUrl -OutFile $armTTKZip
+            
+            # Extract to modules path
+            Expand-Archive -Path $armTTKZip -DestinationPath "$modulesPath/arm-ttk" -Force
+            
+            # Import module
+            Import-Module "$modulesPath/arm-ttk/arm-ttk/arm-ttk.psd1" -Force
+            
+            # Verify installation
+            if (Get-Command Test-AzTemplate -ErrorAction SilentlyContinue) {
+                Write-Host "ARM-TTK installed successfully"
+            } else {
+                throw "ARM-TTK installation failed"
+            }
 
     - task: MicrosoftSecurityDevOps@1
       displayName: 'Microsoft Security DevOps'
