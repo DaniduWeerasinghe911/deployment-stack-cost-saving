@@ -19,13 +19,19 @@ stages:
   jobs:
   - job: AISecurityScanning
     steps:
+    - task: PowerShell@2
+      displayName: 'Set TLS 1.2'
+      inputs:
+        targetType: 'inline'
+        script: |
+          [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
     - task: MicrosoftSecurityDevOps@1
       displayName: 'Microsoft Security DevOps'
       inputs:
         categories: 'IaC'
         outputFormat: 'sarif'
-        tools: 'binskim,templateanalyzer'  # Removed arm-ttk as we'll handle it separately
+        tools: 'binskim,templateanalyzer'
 
     - task: PowerShell@2
       displayName: 'Custom Security Analysis'
@@ -40,16 +46,24 @@ stages:
           $bicepResults = @()
           Get-ChildItem -Path "$(System.DefaultWorkingDirectory)" -Filter "*.bicep" -Recurse | ForEach-Object {
               Write-Host "Analyzing $($_.Name)"
-              
+
               # Convert to ARM for analysis
-              $armOutput = az bicep decompile --file $_.FullName 2>&1
-              
+              try {
+                $armOutput = az bicep decompile --file $_.FullName 2>&1
+              } catch {
+                Write-Error "Failed to decompile Bicep file $($_.Name): $($_.Exception.Message)"
+              }
+
               # Run security checks
-              $validationResult = az deployment sub validate `
-                  --location $(location) `
-                  --template-file $_.FullName `
-                  --parameters location=$(location) 2>&1
-              
+              try {
+                $validationResult = az deployment sub validate `
+                    --location $(location) `
+                    --template-file $_.FullName `
+                    --parameters location=$(location) 2>&1
+              } catch {
+                Write-Error "Validation failed for $($_.Name): $($_.Exception.Message)"
+              }
+
               $analysis = @{
                   FileName = $_.Name
                   Path = $_.FullName
@@ -57,7 +71,7 @@ stages:
                   ValidationStatus = if ($LASTEXITCODE -eq 0) { "Passed" } else { "Failed" }
                   Issues = $validationResult
               }
-              
+
               $bicepResults += New-Object PSObject -Property $analysis
           }
 
@@ -91,19 +105,19 @@ stages:
           </body>
           </html>
           "@
-          
+
           $htmlReport | Out-File "$resultsDir/security-report.html"
 
           # Create markdown summary
           $mdSummary = @"
           # Security Analysis Summary
           Generated: $(Get-Date)
-          
+
           ## Results Overview
           - Total Files Analyzed: $($bicepResults.Count)
           - Passed: $($bicepResults.Where({$_.ValidationStatus -eq 'Passed'}).Count)
           - Failed: $($bicepResults.Where({$_.ValidationStatus -eq 'Failed'}).Count)
-          
+
           ## Details
           $(foreach ($result in $bicepResults) {
               "### $($result.FileName)`n"
@@ -115,7 +129,7 @@ stages:
               }
           })
           "@
-          
+
           $mdSummary | Out-File "$resultsDir/security-summary.md"
           Write-Host "##vso[task.uploadsummary]$resultsDir/security-summary.md"
 
