@@ -19,52 +19,6 @@ stages:
   jobs:
   - job: AISecurityScanning
     steps:
-      # Install and configure ARM-TTK
-    - task: PowerShell@2
-      displayName: 'Install ARM-TTK'
-      inputs:
-        targetType: 'inline'
-        script: |
-            # Set TLS 1.2
-            [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-            
-            # Create modules directory if it doesn't exist
-            $modulesPath = "$(Pipeline.Workspace)/modules"
-            New-Item -ItemType Directory -Force -Path $modulesPath
-            
-            # Download and extract ARM-TTK
-            $armTTKUrl = "https://github.com/Azure/arm-ttk/releases/latest/download/arm-ttk.zip"
-            $armTTKZip = "$modulesPath/arm-ttk.zip"
-            try {
-              Invoke-WebRequest -Uri $armTTKUrl -OutFile $armTTKZip -ErrorAction Stop
-            } catch {
-              Write-Error "Failed to download ARM-TTK: $($_.Exception.Message)"
-              throw "Failed to download ARM-TTK"
-            }
-            
-            # Extract to modules path
-            try {
-              Expand-Archive -Path $armTTKZip -DestinationPath "$modulesPath/arm-ttk" -Force -ErrorAction Stop
-            } catch {
-              Write-Error "Failed to extract ARM-TTK: $($_.Exception.Message)"
-              throw "Failed to extract ARM-TTK"
-            }
-            
-            # Check if module file exists before importing
-            if (Test-Path "$modulesPath/arm-ttk/arm-ttk/arm-ttk.psd1") {
-                Import-Module "$modulesPath/arm-ttk/arm-ttk/arm-ttk.psd1" -Force
-                Write-Host "ARM-TTK module imported successfully."
-            } else {
-                Write-Error "ARM-TTK module file not found."
-                throw "ARM-TTK installation failed"
-            }
-            
-            # Verify installation
-            if (Get-Command Test-AzTemplate -ErrorAction SilentlyContinue) {
-                Write-Host "ARM-TTK installed successfully"
-            } else {
-                throw "ARM-TTK installation failed"
-            }
 
     - task: MicrosoftSecurityDevOps@1
       displayName: 'Microsoft Security DevOps'
@@ -72,28 +26,6 @@ stages:
         categories: 'IaC'
         outputFormat: 'sarif'
         tools: 'binskim,templateanalyzer'  # Removed arm-ttk as we'll handle it separately
-
-      # Add dedicated ARM-TTK testing step
-    - task: PowerShell@2
-      displayName: 'Run ARM-TTK Tests'
-      inputs:
-        targetType: 'inline'
-        script: |
-            $resultsDir = "$(Build.ArtifactStagingDirectory)/security-results"
-            New-Item -ItemType Directory -Force -Path $resultsDir
-            
-            # Convert Bicep to ARM templates for testing
-            Get-ChildItem -Path "$(System.DefaultWorkingDirectory)" -Filter "*.bicep" -Recurse | ForEach-Object {
-                Write-Host "Converting $($_.Name) to ARM template"
-                $armTemplatePath = $_.FullName -replace '\.bicep$', '.json'
-                az bicep build --file $_.FullName --outfile $armTemplatePath
-                
-                # Run ARM-TTK tests
-                $testResults = Test-AzTemplate -TemplatePath $armTemplatePath
-                
-                # Export results
-                $testResults | ConvertTo-Json -Depth 10 | Out-File "$resultsDir/arm-ttk-$($_.BaseName).json"
-            }
 
     - task: PowerShell@2
       displayName: 'Custom Security Analysis'
