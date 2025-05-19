@@ -21,26 +21,26 @@ stages:
     steps:
       # Install and configure ARM-TTK
     - task: PowerShell@2
-        displayName: 'Install ARM-TTK'
-        inputs:
-          targetType: 'inline'
-          script: |
+      displayName: 'Install ARM-TTK'
+      inputs:
+        targetType: 'inline'
+        script: |
             Install-Module -Name ARM-TTK -Force -Scope CurrentUser
             Import-Module ARM-TTK
 
     - task: MicrosoftSecurityDevOps@1
-        displayName: 'Microsoft Security DevOps'
-        inputs:
-          categories: 'IaC'
-          outputFormat: 'sarif'
-          tools: 'binskim,templateanalyzer'  # Removed arm-ttk as we'll handle it separately
+      displayName: 'Microsoft Security DevOps'
+      inputs:
+        categories: 'IaC'
+        outputFormat: 'sarif'
+        tools: 'binskim,templateanalyzer'  # Removed arm-ttk as we'll handle it separately
 
       # Add dedicated ARM-TTK testing step
     - task: PowerShell@2
-        displayName: 'Run ARM-TTK Tests'
-        inputs:
-          targetType: 'inline'
-          script: |
+      displayName: 'Run ARM-TTK Tests'
+      inputs:
+        targetType: 'inline'
+        script: |
             $resultsDir = "$(Build.ArtifactStagingDirectory)/security-results"
             New-Item -ItemType Directory -Force -Path $resultsDir
             
