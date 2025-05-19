@@ -37,7 +37,7 @@ stages:
     steps:
     - task: AzurePowerShell@5
       inputs:
-        azureSubscription: 'Azure subscription'
+        azureSubscription: 'azure-mvp-subscription'
         ScriptType: 'InlineScript'
         Inline: |
           # Validate Bicep files
@@ -61,7 +61,7 @@ stages:
     steps:
     - task: AzurePowerShell@5
       inputs:
-        azureSubscription: 'Azure subscription'
+        azureSubscription: 'azure-mvp-subscription'
         ScriptType: 'InlineScript'
         Inline: |
           # Generate test cases using Azure's What-If analysis
